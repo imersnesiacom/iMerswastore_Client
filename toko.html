@@ -386,7 +386,7 @@
         };
         
         // Ganti dengan URL Web App Apps Script lo yang valid
-        const SCRIPT_URL = 'URL WEB APP GOOGLE APPS SCRIPT ANDA MASUKAN DISINI';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2KfFunnBQ0QI-R9hmwP4dfn33dkEiR8389V5s1QGo-JI8zVchlB6sLmToWM53xmJGrQ/exec';
 
         // Variabel Global
         let storeData = {};
@@ -552,7 +552,7 @@
             
             if(legalParsed.tos_active === 'on') {
                 let encodedTos = encodeURIComponent(legalParsed.tos_content || '');
-                legalHtml += `<button onclick="openLegalModal('Terms of Service', \`${encodedTos}\`)" class="hover:text-emerald-500 transition-colors">Syarat & Ketentuan</button>`;
+                legalHtml += `<button onclick="openLegalModal('Syarat & Ketentuan', \`${encodedTos}\`)" class="hover:text-emerald-500 transition-colors">Syarat & Ketentuan</button>`;
             }
             
             if(legalParsed.privacy_active === 'on') {
@@ -560,7 +560,7 @@
                     legalHtml += `<span class="text-slate-300">•</span>`;
                 }
                 let encodedPrivacy = encodeURIComponent(legalParsed.privacy_content || '');
-                legalHtml += `<button onclick="openLegalModal('Privacy Policy', \`${encodedPrivacy}\`)" class="hover:text-emerald-500 transition-colors">Kebijakan Privasi</button>`;
+                legalHtml += `<button onclick="openLegalModal('Kebijakan Privasi', \`${encodedPrivacy}\`)" class="hover:text-emerald-500 transition-colors">Kebijakan Privasi</button>`;
             }
             
             if(legalLinks) {
