@@ -2109,26 +2109,61 @@
 
         function confirmUpgradeWA() {
             const selectedOpt = document.querySelector('input[name="upgradePlan"]:checked');
-            if(!selectedOpt) return alert("Pilih paket terlebih dahulu!");
-            
-            const plan = JSON.parse(selectedOpt.value);
+            if(!selectedOpt) {
+                alert("Pilih paket langganan terlebih dahulu!");
+                return;
+            }
+
+            // LOGIKA ANTI-CRASH (Bypass Error JSON Parse)
+            let planName = "Paket Upgrade";
+            let planPrice = 0;
+
+            try {
+                // Coba ambil data jika format value di HTML adalah JSON
+                const plan = JSON.parse(selectedOpt.value);
+                planName = plan.name || "Paket Upgrade";
+                planPrice = plan.price || 0;
+            } catch(e) {
+                // JIKA GAGAL (Karena value cuma teks ID), ambil teks langsung dari tampilan web!
+                try {
+                    const labelContainer = selectedOpt.closest('label');
+                    planName = labelContainer.querySelector('div.font-bold').innerText;
+                    // Ambil angka harganya saja
+                    planPrice = labelContainer.querySelector('span.text-orange-600').innerText.replace(/[^0-9]/g, '');
+                } catch(err) {
+                    console.log("Fallback baca DOM gagal", err);
+                }
+            }
             
             let waNumber = upgradeAdminInfo.wa_number;
-            if(!waNumber) return alert("Admin belum mengatur nomor WhatsApp!");
+            if(!waNumber) {
+                alert("Gagal: Admin Pusat belum mengatur Nomor WhatsApp penerima pembayaran!");
+                return;
+            }
             
+            // Format nomor HP agar valid untuk wa.me
             if (waNumber.startsWith('0')) {
                 waNumber = '62' + waNumber.substring(1);
             }
             
-            let message = `Halo Admin, saya pemilik toko *${currentUser.nama_toko}* (ID: ${currentUser.id}).\n\n`;
-            message += `Saya ingin konfirmasi pembayaran *Upgrade Lisensi* dengan detail berikut:\n`;
-            message += `Paket: *${plan.name}*\n`;
-            message += `Harga: *${formatRupiah(plan.price)}*\n\n`;
-            message += `Berikut saya lampirkan bukti transfernya. Mohon segera diproses ya. Terima kasih!`;
-            
+            // Ambil nama toko dan ID dari session browser dengan aman
+            let sessionUser = JSON.parse(localStorage.getItem('iMersWA_User')) || {};
+            let tokoName = sessionUser.nama_toko || 'Toko Saya';
+            let tokoId = sessionUser.id || '-';
+
+            // Menyusun pesan WhatsApp
+            let message = `Halo Admin, saya pemilik toko *${tokoName}* (ID: ${tokoId}).\n\n`;
+            message += `Saya ingin melakukan konfirmasi pembayaran untuk Upgrade Akun:\n`;
+            message += `Paket: *${planName}*\n`;
+            message += `Harga: *Rp ${parseInt(planPrice).toLocaleString('id-ID')}*\n\n`;
+            message += `Berikut saya lampirkan bukti transfernya. Mohon segera diproses. Terima kasih!`;
+
+            // Buka WhatsApp
             const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
             window.open(waUrl, '_blank');
-            closeModal('upgradeModal');
+            
+            // Tutup modal pop-up setelah diarahkan ke WA
+            try { closeModal('upgradeModal'); } catch(e){}
         }
 
         // FUNGSI BARU: Tambah Input Sosial Media
