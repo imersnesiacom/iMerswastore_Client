@@ -105,10 +105,10 @@
         <!-- Logo Brand Dinamis -->
         <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 cursor-pointer">
             <div class="flex items-center" onclick="window.location.href='index.html'">
-                <div id="sidebarBrandLogo" class="w-8 h-8 bg-emerald-500 text-white p-1.5 rounded-lg mr-2 flex items-center justify-center overflow-hidden shrink-0">
-                    <i data-lucide="store" class="w-5 h-5"></i>
+                <div id="sidebarBrandLogo" class="h-8 flex items-center justify-center overflow-hidden shrink-0 mr-2">
+                    <img src="https://imersnesia.com/wp-content/uploads/2026/06/logo-teks-imerswastore-1.png" class="h-full w-auto object-contain" alt="iMersWAStore">
                 </div>
-                <span id="sidebarBrandName" class="font-bold text-lg tracking-tight truncate">iMers<span class="text-emerald-500">WA</span></span>
+                <span id="sidebarBrandName" class="font-bold text-lg tracking-tight truncate hidden"></span>
             </div>
             <!-- Tombol Close (Mobile Only) -->
             <button id="closeSidebarBtn" class="lg:hidden text-slate-400 hover:text-slate-600 focus:outline-none">
@@ -1327,7 +1327,7 @@
                 </div>
 
                 <div class="p-4 bg-white border-t border-slate-100 shrink-0">
-                    <button onclick="confirmUpgradeWA()" id="btnConfirmUpgrade" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl flex justify-center items-center gap-2 shadow-lg transition-all disabled:opacity-50">
+                    <button type="button" onclick="confirmUpgradeWA()" id="btnConfirmUpgrade" class="w-full py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl flex justify-center items-center gap-2 shadow-lg transition-all disabled:opacity-50">
                         <i data-lucide="send" class="w-5 h-5"></i> Konfirmasi via WhatsApp
                     </button>
                 </div>
@@ -1452,11 +1452,11 @@
             sidebarBrandNameEl.innerText = currentUser.nama_toko || 'iMersWAstore';
 
             if (currentUser.logo && currentUser.logo !== '') {
-                sidebarBrandLogoEl.innerHTML = `<img src="${currentUser.logo}" class="w-full h-full object-cover">`;
-                sidebarBrandLogoEl.classList.remove('p-1.5', 'bg-emerald-500'); 
+                sidebarBrandLogoEl.innerHTML = `<img src="${currentUser.logo}" class="w-10 h-10 object-cover rounded-lg">`;
+                sidebarBrandNameEl.classList.remove('hidden'); 
             } else {
-                sidebarBrandLogoEl.innerHTML = `<i data-lucide="store" class="w-5 h-5 text-white"></i>`;
-                sidebarBrandLogoEl.classList.add('p-1.5', 'bg-emerald-500');
+                sidebarBrandLogoEl.innerHTML = `<img src="https://imersnesia.com/wp-content/uploads/2026/06/logo-teks-imerswastore-1.png" class="h-8 w-auto object-contain" alt="iMersWAStore">`;
+                sidebarBrandNameEl.classList.add('hidden');
             }
 
             // Atur Avatar Info
@@ -2108,63 +2108,79 @@
         }
 
         function confirmUpgradeWA() {
+            console.log("Tombol WA diklik");
+
             const selectedOpt = document.querySelector('input[name="upgradePlan"]:checked');
-            if(!selectedOpt) {
+            if (!selectedOpt) {
                 alert("Pilih paket langganan terlebih dahulu!");
                 return;
             }
 
-            // LOGIKA ANTI-CRASH (Bypass Error JSON Parse)
             let planName = "Paket Upgrade";
             let planPrice = 0;
 
             try {
-                // Coba ambil data jika format value di HTML adalah JSON
                 const plan = JSON.parse(selectedOpt.value);
                 planName = plan.name || "Paket Upgrade";
                 planPrice = plan.price || 0;
-            } catch(e) {
-                // JIKA GAGAL (Karena value cuma teks ID), ambil teks langsung dari tampilan web!
+            } catch (e) {
                 try {
                     const labelContainer = selectedOpt.closest('label');
-                    planName = labelContainer.querySelector('div.font-bold').innerText;
-                    // Ambil angka harganya saja
-                    planPrice = labelContainer.querySelector('span.text-orange-600').innerText.replace(/[^0-9]/g, '');
-                } catch(err) {
+                    planName = labelContainer?.querySelector('div.font-bold')?.innerText || "Paket Upgrade";
+
+                    const priceText = labelContainer?.querySelector('span.text-orange-600')?.innerText || "0";
+                    planPrice = priceText.replace(/[^0-9]/g, '');
+                } catch (err) {
                     console.log("Fallback baca DOM gagal", err);
                 }
             }
-            
-            let waNumber = upgradeAdminInfo.wa_number;
-            if(!waNumber) {
+
+            // FIX: Hapus "window." agar variabel terbaca dengan benar
+            let waNumber = upgradeAdminInfo?.wa_number;
+
+            if (!waNumber) {
                 alert("Gagal: Admin Pusat belum mengatur Nomor WhatsApp penerima pembayaran!");
                 return;
             }
-            
-            // Format nomor HP agar valid untuk wa.me
+
+            // Bersihkan nomor WA
+            waNumber = String(waNumber).replace(/[^0-9]/g, '');
+
             if (waNumber.startsWith('0')) {
                 waNumber = '62' + waNumber.substring(1);
             }
-            
-            // Ambil nama toko dan ID dari session browser dengan aman
-            let sessionUser = JSON.parse(localStorage.getItem('iMersWA_User')) || {};
-            let tokoName = sessionUser.nama_toko || 'Toko Saya';
-            let tokoId = sessionUser.id || '-';
 
-            // Menyusun pesan WhatsApp
+            if (!waNumber.startsWith('62')) {
+                waNumber = '62' + waNumber;
+            }
+
+            let sessionUser = {};
+            try {
+                sessionUser = JSON.parse(localStorage.getItem('iMersWA_User')) || {};
+            } catch (e) {
+                console.log("Gagal baca session user", e);
+                sessionUser = {};
+            }
+
+            const tokoName = sessionUser.nama_toko || 'Toko Saya';
+            const tokoId = sessionUser.id || '-';
+
             let message = `Halo Admin, saya pemilik toko *${tokoName}* (ID: ${tokoId}).\n\n`;
             message += `Saya ingin melakukan konfirmasi pembayaran untuk Upgrade Akun:\n`;
             message += `Paket: *${planName}*\n`;
-            message += `Harga: *Rp ${parseInt(planPrice).toLocaleString('id-ID')}*\n\n`;
+            message += `Harga: *Rp ${parseInt(planPrice || 0).toLocaleString('id-ID')}*\n\n`;
             message += `Berikut saya lampirkan bukti transfernya. Mohon segera diproses. Terima kasih!`;
 
-            // Buka WhatsApp
             const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
-            window.open(waUrl, '_blank');
+
+            console.log("WA URL:", waUrl);
+
+            window.location.href = waUrl;
             
-            // Tutup modal pop-up setelah diarahkan ke WA
             try { closeModal('upgradeModal'); } catch(e){}
         }
+
+        window.confirmUpgradeWA = confirmUpgradeWA;
 
         // FUNGSI BARU: Tambah Input Sosial Media
         function addSocialMediaInput(platform = 'Instagram', url = '') {
