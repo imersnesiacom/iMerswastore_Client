@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- Judul bawaan dibikin netral -->
     <title>Belanja Online</title>
+    
+    <!-- FAVICON DEFAULT (Bisa diganti dengan link logo default sistem lo) -->
+    <link id="dynamicFavicon" rel="icon" type="image/png" href="https://placehold.co/32x32/10b981/ffffff?text=S">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -467,6 +471,12 @@
             
             if (storeData.logo) {
                 document.getElementById('storeLogo').innerHTML = `<img src="${storeData.logo}" class="w-full h-full object-cover">`;
+                
+                // --- SET FAVICON DINAMIS ---
+                const favicon = document.getElementById('dynamicFavicon');
+                if(favicon) {
+                    favicon.href = storeData.logo;
+                }
             } else {
                 document.getElementById('storeLogo').innerHTML = `<span class="font-bold text-lg">${storeData.nama_toko.charAt(0)}</span>`;
             }
@@ -764,7 +774,7 @@
                         <div class="mt-auto flex items-end justify-between border-t border-slate-50 pt-3">
                             <div>
                                 <p class="text-emerald-600 font-black text-base leading-none">${formatRupiah(p.price)}</p>
-                                <p class="text-[9px] text-slate-400 mt-1 font-medium">/${p.unit || 'pcs'}</p>
+                                <p class="text-[9px] text-slate-400 mt-1 font-medium">/${p.unit || 'pcs'}</span>
                             </div>
                             <button onclick="event.stopPropagation(); openProductDetail('${p.id}')" class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-emerald-500 transition-colors shadow-md transform active:scale-95 shrink-0">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
